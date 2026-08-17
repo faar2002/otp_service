@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - OTP Service</title>
+    <!-- Tailwind CSS v3 CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950 min-h-screen flex items-center justify-center p-4 antialiased">
+
+    <!-- Tarjeta Principal de Login -->
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
+        
+        <!-- Encabezado con Ícono y Título -->
+        <div class="p-8 pb-4 text-center">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-slate-100 rounded-2xl mb-4 text-3xl shadow-inner">
+                🔐
+            </div>
+            <h1 class="text-2xl font-bold text-slate-800 tracking-tight">OTP Service</h1>
+            <p class="text-sm text-slate-500 mt-1">Ingresa tus credenciales para acceder al panel</p>
+        </div>
+
+        <div class="px-8 pb-8">
+            <!-- Mensajes de Alerta / Feedback -->
+            {% if messages %}
+                <div class="mb-4 space-y-2">
+                    {% for message in messages %}
+                        <div class="p-3 text-sm rounded-lg border flex items-center justify-between
+                            {% if message.tags == 'error' %} bg-red-50 text-red-700 border-red-200
+                            {% elif message.tags == 'success' %} bg-emerald-50 text-emerald-700 border-emerald-200
+                            {% else %} bg-sky-50 text-sky-700 border-sky-200 {% endif %}">
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Formulario de Autenticación -->
+            <form method="POST" action="" class="space-y-5">
+                {% csrf_token %}
+
+                <!-- Campo Usuario -->
+                <div>
+                    <label for="id_username" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+                        Usuario
+                    </label>
+                    <input 
+                        type="text" 
+                        name="username" 
+                        id="id_username" 
+                        required 
+                        autofocus
+                        placeholder="Ej: admin"
+                        class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition duration-150"
+                    >
+                </div>
+
+                <!-- Campo Contraseña -->
+                <div>
+                    <label for="id_password" class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-2">
+                        Contraseña
+                    </label>
+                    <input 
+                        type="password" 
+                        name="password" 
+                        id="id_password" 
+                        required
+                        placeholder="••••••••"
+                        class="w-full px-4 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:border-transparent transition duration-150"
+                    >
+                </div>
+
+                <!-- Botón de Envío -->
+                <button 
+                    type="submit" 
+                    class="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white font-semibold text-sm rounded-lg shadow-md hover:shadow-lg transition duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                    Ingresar al Panel
+                </button>
+            </form>
+        </div>
+
+        <!-- Pie de tarjeta -->
+        <div class="px-8 py-4 bg-slate-50 border-t border-slate-100 text-center">
+            <p class="text-xs text-slate-400">
+                Microservicio de Autenticación OTP &copy; 2026
+            </p>
+        </div>
+
+    </div>
+
+</body>
+</html>

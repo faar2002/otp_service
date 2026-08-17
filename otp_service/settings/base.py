@@ -14,6 +14,10 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # Determina el entorno actual (por defecto 'local')
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'local').lower()
 
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/login/'
+
 # En entornos de QA o Producción, la SECRET_KEY debe existir sí o sí
 if not SECRET_KEY:
     if ENVIRONMENT in ['qa', 'prod']:

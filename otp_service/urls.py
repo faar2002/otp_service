@@ -19,5 +19,8 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    # Vista Web (HTML)
+    path('', include('otp.urls')),
+    #  API REST (JSON)
     path('api/v1/otp/', include('otp.api.v1.urls')),
 ]
