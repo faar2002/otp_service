@@ -111,12 +111,14 @@ python manage.py createsuperuser --settings=otp_service.settings.local
 
 python manage.py runserver --settings=otp_service.settings.local
 
-7. Interfaz Web / Dashboard Admin
+# Intefaz WEB
+
+Interfaz Web / Dashboard Admin
 Accede desde el navegador web a:
 
-Login: http://127.0.0.1:8000/login/
+1.- Login: http://127.0.0.1:8000/login/
 
-Dashboard: http://127.0.0.1:8000/dashboard/
+2.- Dashboard: http://127.0.0.1:8000/dashboard/
 
 El Dashboard permite:
 
