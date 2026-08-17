@@ -1,0 +1,126 @@
+{
+  "info": {
+    "_postman_id": "885b6402-e45d-4819-8142-51b3bcc4e916",
+    "name": "OTP Service API (v1)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "23093066"
+  },
+  "item": [
+    {
+      "name": "1. Generar OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-System-Token",
+            "value": "sys_8a0e3afa75719936f1288b0e2356fed472c48cebd3b78b6f55bcc06b",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"system_name\": \"mobile_app\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/generate/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "generate",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "2. Verificar OTP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-System-Token",
+            "value": "sys_8a0e3afa75719936f1288b0e2356fed472c48cebd3b78b6f55bcc06b",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"{{email}}\",\n  \"system_name\": \"mobile_app\",\n  \"otp\": \"071098\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/verify/",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "verify",
+            ""
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "3. Status OTP",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "X-System-Token",
+            "value": "sys_8a0e3afa75719936f1288b0e2356fed472c48cebd3b78b6f55bcc06b",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/status/?email={{email}}&system_name=mobile_app",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "status",
+            ""
+          ],
+          "query": [
+            {
+              "key": "email",
+              "value": "{{email}}"
+            },
+            {
+              "key": "system_name",
+              "value": "mobile_app"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "4. Health",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000/api/v1/otp"
+    },
+    {
+      "key": "email",
+      "value": "usuario.prueba@ejemplo.com"
+    }
+  ]
+}
