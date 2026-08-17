@@ -39,6 +39,12 @@ otp_service/
 │   │       ├── urls.py           # Rutas versionadas v1
 │   │       ├── permissions.py 
 │   │       └── views.py          # Controladores REST (Generate, Verify, Status, Health)
+│   │
+│   ├── templates/             #  PLANTILLAS WEB (HTML)
+│   │   └── dashboard/
+│   │       ├── index.html     # Panel con tablas y auto-refresco JS
+│   │       └── login.html     # Pantalla de Login (Tailwind CSS)
+│   │
 │   ├── models.py              # Modelos: AuthorizedSystem, UserOTP, OTPLog
 │   ├── services.py            # Cliente HTTP para el Email Microservice
 │   ├── apps.py 
@@ -104,6 +110,21 @@ python manage.py createsuperuser --settings=otp_service.settings.local
 6. Iniciar Servidor de Desarrollo
 
 python manage.py runserver --settings=otp_service.settings.local
+
+7. Interfaz Web / Dashboard Admin
+Accede desde el navegador web a:
+
+Login: http://127.0.0.1:8000/login/
+
+Dashboard: http://127.0.0.1:8000/dashboard/
+
+El Dashboard permite:
+
+Visualización en Vivo: Tarjetas con el total de sistemas autorizados, OTPs pendientes y correos actualmente bloqueados.
+
+Auto-Sincronización: Mantiene las tablas actualizadas en tiempo real en segundo plano sin interrumpir la navegación.
+
+Gestión de Bloqueos: Botón de acción 🔓 Desbloquear para restablecer el acceso a un correo bloqueado sin esperar la ventana de 5 minutos.
 
 🔑 Autenticación de Sistemas Consumidores
 Cada sistema que requiera consumir el servicio de OTP debe estar registrado en la tabla authorized_systems (vía Django Admin o comando) y enviar su token en el header HTTP:
