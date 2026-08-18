@@ -4,20 +4,31 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.views.decorators.http import require_POST
+from django.core.paginator import Paginator
+
 from .models import AuthorizedSystem, UserOTP, OTPLog
 
 
 @staff_member_required
 def dashboard_index_view(request):
     """
-    Vista web independiente para visualizar el estado de los sistemas,
-    las OTPs registradas y el historial de auditoría.
+    Vista principal del Dashboard con paginación independiente para UserOTP y OTPLog.
     """
     systems = AuthorizedSystem.objects.all().order_by('-created_at')
-    user_otps = UserOTP.objects.all().order_by('-updated_at')[:50]
-    logs = OTPLog.objects.all().order_by('-created_at')[:50]
 
-    # Métricas rápidas para las tarjetas superiores
+    # 1. Paginación para UserOTP (10 por página)
+    user_otps_queryset = UserOTP.objects.all().order_by('-updated_at')
+    otps_paginator = Paginator(user_otps_queryset, 10)
+    otps_page_number = request.GET.get('otps_page', 1)
+    user_otps_page = otps_paginator.get_page(otps_page_number)
+
+    # 2. Paginación para OTPLog (10 por página)
+    logs_queryset = OTPLog.objects.all().order_by('-created_at')
+    logs_paginator = Paginator(logs_queryset, 10)
+    logs_page_number = request.GET.get('logs_page', 1)
+    logs_page = logs_paginator.get_page(logs_page_number)
+
+    # Métricas generales
     metrics = {
         'total_systems': systems.count(),
         'total_otps': UserOTP.objects.count(),
@@ -28,8 +39,8 @@ def dashboard_index_view(request):
     context = {
         'metrics': metrics,
         'systems': systems,
-        'user_otps': user_otps,
-        'logs': logs,
+        'user_otps': user_otps_page,  # Objeto Page de UserOTP
+        'logs': logs_page,            # Objeto Page de OTPLog
     }
     return render(request, 'dashboard/index.html', context)
 
