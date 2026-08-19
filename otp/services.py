@@ -13,7 +13,8 @@ class EmailService:
     """
 
     @staticmethod
-    def send_otp_email(recipient_email: str, otp_code: str, system_name: str = 'default') -> bool:
+    def send_otp_email(recipient_email: str, otp_code: str, system_name: str = 'default',recipient_name: str = "Usuario",
+        expiration_minutes: str = "5") -> bool:
         """
         Envía una petición POST al microservicio de correo con los datos del OTP.
         
@@ -24,6 +25,8 @@ class EmailService:
         # 1. Obtener la configuración cargada desde los archivos .env
         service_url = getattr(settings, 'EMAIL_SERVICE_URL', None)
         api_key = getattr(settings, 'EMAIL_SERVICE_API_KEY', None)
+        #service_url = getattr(settings, 'EMAIL_SERVICE_URL', 'http://127.0.0.1:8001/api/v1/emails/send/')
+        #api_key = getattr(settings, 'EMAIL_SERVICE_API_KEY', '0ceff36628d786d4a093fb60d794bfc2f275cc3e00a40073ea291dbc4e2acd4c')
 
         if not service_url or not api_key:
             logger.error("Error de configuración: EMAIL_SERVICE_URL o EMAIL_SERVICE_API_KEY no están definidos.")
@@ -31,18 +34,20 @@ class EmailService:
 
         # 2. Construir el contrato/payload JSON esperado por el microservicio
         payload = {
-            "to": recipient_email,
-            "system_name": system_name,  # Identificador del sistema solicitante
-            "template": "otp_verification",
-            "data": {
-                "code": otp_code,
-                "system": system_name,
-                "expiration_minutes": 5
+            "recipient": recipient_email,
+            "template_code": "OTP_VALIDATION",
+            "context": {
+                "nombre": recipient_name,
+                "codigo_otp": str(otp_code),
+                "tiempo_expiracion": str(expiration_minutes),
+                "nombre_empresa": system_name
             }
         }
 
         # 3. Cabeceras con token de autenticación inter-servicio
         headers = {
+            'X-Api-Key': api_key,
+            'X-API-KEY': api_key,
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
             "User-Agent": "Django-OTP-Service/1.0"
@@ -72,5 +77,5 @@ class EmailService:
             return False
 
         except requests.exceptions.RequestException as e:
-            logger.error(f"Fallo de red al intentar conectar con el Email Microservice: {e}")
+            logger.error(f"Fallo de red al intentar conectar con el Email Microservice: {str(e)}")
             return False

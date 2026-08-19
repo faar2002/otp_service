@@ -22,69 +22,101 @@ def get_client_ip(request):
     return ip
 
 class GenerateOTPView(APIView):
+    """
+    Endpoint para generar y enviar un código de verificación OTP por correo electrónico.
+    """
     authentication_classes = [SystemTokenAuthentication]
     permission_classes = [IsAuthenticated]
     throttle_classes = [OTPGenerateThrottle]
 
     def post(self, request):
         email = request.data.get('email')
-        system = request.user
+        recipient_name = request.data.get('nombre', 'Usuario')
+        system = request.user  # Instancia del sistema autorizado validado por el token
+        client_ip = get_client_ip(request)
 
+        # 1. Validación de campos obligatorios
         if not email:
-            return Response({'error': 'El email es requerido.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'El parámetro "email" es requerido.'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
-        # 1. Validar si el correo se encuentra bloqueado
+        # 2. Verificar si el usuario se encuentra actualmente bloqueado
         blocked_otp = UserOTP.objects.filter(
             email=email, 
+            system_name=system.name,
             status=UserOTP.OTPStatus.BLOCKED
         ).first()
 
         if blocked_otp and blocked_otp.is_currently_blocked():
             remaining_seconds = blocked_otp.get_remaining_block_time_seconds()
             remaining_minutes = (remaining_seconds // 60) + 1
+
+            # Log de auditoría: intento de generación bloqueado
+            OTPLog.objects.create(
+                email=email,
+                system_name=system.name,
+                otp_code='BLOCKED',
+                status='GENERATE_ATTEMPT_BLOCKED',
+                ip_address=client_ip
+            )
+
             return Response({
-                'error': f'El correo está bloqueado por {remaining_minutes} minuto(s) más.',
+                'error': f'El correo está temporalmente bloqueado por {remaining_minutes} minuto(s) más.',
+                'status': blocked_otp.status,
                 'retry_after_seconds': remaining_seconds
             }, status=status.HTTP_403_FORBIDDEN)
 
-        # 2. Actualizar/Crear el estado actual en UserOTP
-        user_otp, _ = UserOTP.objects.get_or_create(email=email, system_name=system.name)
-
-        # Expirar solicitudes pendientes previas
-        UserOTP.objects.filter(
+        # 3. Obtener o crear el registro unificado del usuario en UserOTP
+        user_otp, _ = UserOTP.objects.get_or_create(
             email=email, 
+            system_name=system.name
+        )
+
+        # Expirar solicitudes pendientes previas para este correo y sistema
+        UserOTP.objects.filter(
+            email=email,
+            system_name=system.name,
             status=UserOTP.OTPStatus.PENDING
         ).exclude(id=user_otp.id).update(status=UserOTP.OTPStatus.EXPIRED)
 
+        # 4. Actualizar las credenciales y estado del OTP
         user_otp.secret_key = pyotp.random_base32()
         user_otp.status = UserOTP.OTPStatus.PENDING
         user_otp.failed_attempts = 0
         user_otp.blocked_until = None
         user_otp.save()
 
-        # 3. Generar el código OTP
-        totp = pyotp.TOTP(user_otp.secret_key, interval=OTP_INTERVAL)
+        # 5. Generar el código TOTP de 6 dígitos (válido por 5 minutos)
+        totp = pyotp.TOTP(user_otp.secret_key, interval=300)
         otp_code = totp.now()
 
-        # 🔹 4. CREAR EL REGISTRO DE AUDITORÍA EN HISTORIAL (OTPLog)
+        # 6. Registrar evento en la tabla de auditoría (OTPLog)
         OTPLog.objects.create(
             email=email,
             system_name=system.name,
             otp_code=otp_code,
             status='GENERATED',
-            ip_address=get_client_ip(request)
+            ip_address=client_ip
         )
 
-        # 5. Enviar por correo vía microservicio
+        # 7. Enviar la notificación al microservicio de correo
         email_sent = EmailService.send_otp_email(
             recipient_email=email,
             otp_code=otp_code,
-            system_name=system.name
+            system_name=system.name,
+            recipient_name=recipient_name,
+            expiration_minutes="5"
         )
 
         if not email_sent:
-            return Response({'error': 'No se pudo enviar el correo.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(
+                {'error': 'No se pudo enviar el correo de verificación OTP. Intente nuevamente.'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
+        # 8. Respuesta exitosa
         return Response({
             'message': 'Código OTP generado y enviado con éxito.',
             'system_name': system.name,
